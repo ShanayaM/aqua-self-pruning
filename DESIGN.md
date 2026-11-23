@@ -1,5 +1,9 @@
 # Design choices
 
+### Part 1
+
+
+
 ### Part 2
 
 Numerical & Training Stability Safeguards (No NaNs)
