@@ -1,2 +1,3 @@
 tests/ignore_*.py
 SCRATCHPAD.md
+__pycache__
