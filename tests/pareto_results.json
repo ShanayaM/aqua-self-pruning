@@ -1,0 +1,137 @@
+{
+  "taylor": [
+    {
+      "target_sparsity": 0.0,
+      "achieved_sparsity": 0.0004,
+      "mean_acc": 99.83,
+      "std_acc": 0.33,
+      "raw_accs": [
+        100.0,
+        100.0,
+        100.0,
+        100.0,
+        99.17
+      ]
+    },
+    {
+      "target_sparsity": 0.5,
+      "achieved_sparsity": 0.5,
+      "mean_acc": 99.83,
+      "std_acc": 0.33,
+      "raw_accs": [
+        100.0,
+        100.0,
+        100.0,
+        100.0,
+        99.17
+      ]
+    },
+    {
+      "target_sparsity": 0.75,
+      "achieved_sparsity": 0.75,
+      "mean_acc": 99.83,
+      "std_acc": 0.33,
+      "raw_accs": [
+        100.0,
+        100.0,
+        100.0,
+        100.0,
+        99.17
+      ]
+    },
+    {
+      "target_sparsity": 0.9,
+      "achieved_sparsity": 0.9,
+      "mean_acc": 99.83,
+      "std_acc": 0.33,
+      "raw_accs": [
+        100.0,
+        100.0,
+        100.0,
+        100.0,
+        99.17
+      ]
+    },
+    {
+      "target_sparsity": 0.95,
+      "achieved_sparsity": 0.95,
+      "mean_acc": 99.83,
+      "std_acc": 0.33,
+      "raw_accs": [
+        100.0,
+        100.0,
+        100.0,
+        100.0,
+        99.17
+      ]
+    }
+  ],
+  "magnitude": [
+    {
+      "target_sparsity": 0.0,
+      "achieved_sparsity": 0.0004,
+      "mean_acc": 99.83,
+      "std_acc": 0.33,
+      "raw_accs": [
+        100.0,
+        100.0,
+        100.0,
+        100.0,
+        99.17
+      ]
+    },
+    {
+      "target_sparsity": 0.5,
+      "achieved_sparsity": 0.5,
+      "mean_acc": 99.83,
+      "std_acc": 0.33,
+      "raw_accs": [
+        100.0,
+        100.0,
+        100.0,
+        100.0,
+        99.17
+      ]
+    },
+    {
+      "target_sparsity": 0.75,
+      "achieved_sparsity": 0.75,
+      "mean_acc": 99.83,
+      "std_acc": 0.33,
+      "raw_accs": [
+        100.0,
+        100.0,
+        100.0,
+        100.0,
+        99.17
+      ]
+    },
+    {
+      "target_sparsity": 0.9,
+      "achieved_sparsity": 0.9,
+      "mean_acc": 99.83,
+      "std_acc": 0.33,
+      "raw_accs": [
+        100.0,
+        100.0,
+        100.0,
+        100.0,
+        99.17
+      ]
+    },
+    {
+      "target_sparsity": 0.95,
+      "achieved_sparsity": 0.95,
+      "mean_acc": 99.83,
+      "std_acc": 0.33,
+      "raw_accs": [
+        100.0,
+        100.0,
+        100.0,
+        100.0,
+        99.17
+      ]
+    }
+  ],
+  "compute_benchmarks": []
+}
