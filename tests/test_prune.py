@@ -16,9 +16,9 @@ from train.dataset.spirals import generate_spiral_dataset
 from prune.prune import DynamicPruner, SparseMLP, cubic_sparsity_schedule
 
 
-def train_with_pruning(target_sparsity, criterion="taylor", allow_regrowth=True, seed=42, epochs=250):
+def train_with_pruning(target_sparsity, criterion="taylor", allow_regrowth=True, seed=123, epochs=250):
     np.random.seed(seed)
-    X, y = generate_spiral_dataset(n_samples=600, n_classes=3, noise=0.12)
+    X, y = generate_spiral_dataset(n_samples=1200, n_classes=3, noise=0.123)
 
     indices = np.random.permutation(len(X))
     split = int(0.8 * len(X))
@@ -118,7 +118,7 @@ def benchmark_compute(dense_model, sparse_model, X_sample, repeats=500):
 
 def run_pareto_sweep():
     sparsity_levels = [0.0, 0.50, 0.75, 0.90, 0.95]
-    seeds = [11, 22, 33, 44, 55]
+    seeds = [10, 50, 100, 123, 200]
 
     results = {"taylor": [], "magnitude": [], "compute_benchmarks": []}
 

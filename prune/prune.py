@@ -10,7 +10,6 @@ import numpy as np
 
 from nn.mlp import Linear, ReLU
 
-
 def cubic_sparsity_schedule(step, start_step, end_step, target_sparsity, initial_sparsity=0.0):
     if step < start_step:
         return initial_sparsity
@@ -100,9 +99,7 @@ class DynamicPruner:
         return zeros / float(total)
 
 
-# =========================================================
 # True Sparse-Aware Forward Pass (Real FLOPs & Speedup)
-# =========================================================
 class SparseLinear:
     """
     Compiles a pruned Linear layer into Compressed Sparse Column (CSC) index lists.
