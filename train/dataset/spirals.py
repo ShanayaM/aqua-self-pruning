@@ -26,8 +26,8 @@ def generate_spiral_dataset(n_samples, n_classes, noise=0.12):
     return data, labels
 
 # Generate spiral dataset with 500 samples and 3 classes
-if __name__ == "main":
-    n_samples = 500
+if __name__ == "__main__":
+    n_samples = 600
     n_classes = 3
     data, labels = generate_spiral_dataset(n_samples, n_classes)
     plt.scatter(data[:, 0], data[:, 1], c=labels, cmap='viridis')
