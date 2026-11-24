@@ -7,8 +7,15 @@ sys.path.insert(0, parent_dir)
 
 import json
 import time
+import warnings
 import numpy as np
 import matplotlib.pyplot as plt
+
+# Confirmed benign: numpy/Accelerate BLAS on macOS raises spurious divide-by-zero /
+# overflow / invalid-value RuntimeWarnings on ordinary, perfectly-finite matmuls.
+# Verified by checking logits.data is finite every time the warning fires.
+# See check_blas_quirk.py. Silenced here so it doesn't bury real warnings.
+warnings.filterwarnings("ignore", message=".*encountered in matmul", category=RuntimeWarning)
 
 from engine.tensor import Tensor, Adam
 from nn.mlp import Linear, ReLU, Sequential
@@ -16,7 +23,22 @@ from train.dataset.spirals import generate_spiral_dataset
 from prune.prune import DynamicPruner, SparseMLP, cubic_sparsity_schedule
 
 
-def train_with_pruning(target_sparsity, criterion="taylor", allow_regrowth=True, seed=123, epochs=250):
+def build_model(hidden):
+    """2 -> hidden -> hidden -> 3. hidden=128 saturates at 100% acc even at 90%
+    sparsity on this task (confirmed empirically) -- there's no capacity for
+    sparsity to bind against. hidden=8 is small enough that pruning actually
+    costs something, which is what makes the Pareto curve visible at all."""
+    return Sequential(
+        Linear(2, hidden),
+        ReLU(),
+        Linear(hidden, hidden),
+        ReLU(),
+        Linear(hidden, 3),
+    )
+
+
+def train_with_pruning(target_sparsity, criterion="taylor", allow_regrowth=True,
+                        seed=123, epochs=250, hidden=8):
     np.random.seed(seed)
     X, y = generate_spiral_dataset(n_samples=1200, n_classes=3, noise=0.123)
 
@@ -25,14 +47,7 @@ def train_with_pruning(target_sparsity, criterion="taylor", allow_regrowth=True,
     X_train, y_train = X[indices[:split]], y[indices[:split]]
     X_val, y_val = X[indices[split:]], y[indices[split:]]
 
-    # Wider hidden layers (128) make sparse capacity trade-offs clearer at 90-95%
-    model = Sequential(
-        Linear(2, 128),
-        ReLU(),
-        Linear(128, 128),
-        ReLU(),
-        Linear(128, 3)
-    )
+    model = build_model(hidden)
     optimizer = Adam(model.parameters(), lr=1e-2, weight_decay=1e-4)
     pruner = DynamicPruner(model, optimizer, criterion=criterion, allow_regrowth=allow_regrowth)
 
@@ -83,17 +98,23 @@ def train_with_pruning(target_sparsity, criterion="taylor", allow_regrowth=True,
 
 
 def benchmark_compute(dense_model, sparse_model, X_sample, repeats=500):
-    dense_flops = SparseMLP(dense_model)  # dense baseline has nnz == total weights
     # Count full dense FLOPs
     total_params = sum(p.data.size for p in dense_model.parameters() if p.data.ndim == 2)
     total_biases = sum(p.data.size for p in dense_model.parameters() if p.data.ndim == 1)
     full_dense_flops = len(X_sample) * (2 * total_params + total_biases)
     sparse_flops = sparse_model.count_flops(batch_size=len(X_sample))
 
-    # Wall-clock timing: raw NumPy dense matmul vs SparseMLP
-    W1, b1 = dense_model.layers.W.data, dense_model.layers.b.data
-    W2, b2 = dense_model.layers.W.data, dense_model.layers.b.data
-    W3, b3 = dense_model.layers.W.data, dense_model.layers.b.data
+    # Wall-clock timing: raw NumPy dense matmul vs SparseMLP.
+    # FIX: previously all three (W,b) pairs pointed at dense_model.layers (no
+    # index), so every "layer" in the timing loop was actually the first Linear
+    # layer computed three times. dense_model.layers is the Sequential's list
+    # of sublayers in order [Linear, ReLU, Linear, ReLU, Linear] -> the three
+    # Linear layers are at indices 0, 2, 4.
+    linear_layers = [l for l in dense_model.layers if isinstance(l, Linear)]
+    assert len(linear_layers) == 3, f"expected 3 Linear layers, got {len(linear_layers)}"
+    (W1, b1), (W2, b2), (W3, b3) = (
+        (layer.W.data, layer.b.data) for layer in linear_layers
+    )
 
     t0 = time.perf_counter()
     for _ in range(repeats):
@@ -116,48 +137,61 @@ def benchmark_compute(dense_model, sparse_model, X_sample, repeats=500):
     }
 
 
-def run_pareto_sweep():
-    sparsity_levels = [0.0, 0.50, 0.75, 0.90, 0.95]
-    seeds = [10, 50, 100, 123, 200]
+def run_pareto_sweep(hidden=8, sparsity_levels=None, seeds=None):
+    """hidden=8 (not 128): at hidden=128 this network has ~17k prunable weights,
+    which is so much more capacity than this 3-class 2D spiral task needs that
+    accuracy stays pinned at ~100% up to 90%+ sparsity regardless of pruning
+    criterion -- there's no capacity constraint for sparsity to bind against,
+    so taylor and magnitude pruning look identical. At hidden=8 the network has
+    just enough capacity that sparsity actually costs something, which is what
+    makes the taylor-vs-magnitude comparison meaningful. See test_capacity_binding.py
+    for the experiment that established this."""
+    sparsity_levels = sparsity_levels if sparsity_levels is not None else [0.0, 0.50, 0.75, 0.90, 0.95]
+    seeds = seeds if seeds is not None else [10, 50, 100, 123, 200]
 
-    results = {"taylor": [], "magnitude": [], "compute_benchmarks": []}
+    results = {"taylor": [], "magnitude": [], "compute_benchmarks": [], "hidden": hidden}
 
     for s in sparsity_levels:
         taylor_accs, mag_accs = [], []
-        achieved_s = 0.0
+        achieved_t, achieved_m = 0.0, 0.0
 
-        for seed in seeds:
+        for i, seed in enumerate(seeds):
             m_t, sp_t, X_val, acc_t, ach_t = train_with_pruning(
-                s, criterion="taylor", allow_regrowth=True, seed=seed
+                s, criterion="taylor", allow_regrowth=True, seed=seed, hidden=hidden
             )
-            m_m, _, _, acc_m, _ = train_with_pruning(
-                s, criterion="magnitude", allow_regrowth=False, seed=seed
+            m_m, sp_m, _, acc_m, ach_m = train_with_pruning(
+                s, criterion="magnitude", allow_regrowth=False, seed=seed, hidden=hidden
             )
             taylor_accs.append(acc_t * 100.0)
             mag_accs.append(acc_m * 100.0)
-            achieved_s = ach_t
+            # FIX: previously recorded only the taylor run's achieved sparsity
+            # and reused it for the magnitude row too.
+            achieved_t, achieved_m = ach_t, ach_m
 
-            if seed == seeds:
+            # FIX: previously `if seed == seeds` compared an int to the whole
+            # list, which is always False, so this never ran. Benchmark once
+            # per sparsity level, on the first seed.
+            if i == 0:
                 bench = benchmark_compute(m_t, sp_t, X_val)
                 bench["target_sparsity"] = s
                 results["compute_benchmarks"].append(bench)
 
         results["taylor"].append({
             "target_sparsity": s,
-            "achieved_sparsity": round(achieved_s, 4),
+            "achieved_sparsity": round(achieved_t, 4),
             "mean_acc": round(float(np.mean(taylor_accs)), 2),
             "std_acc": round(float(np.std(taylor_accs)), 2),
             "raw_accs": [round(a, 2) for a in taylor_accs],
         })
         results["magnitude"].append({
             "target_sparsity": s,
-            "achieved_sparsity": round(achieved_s, 4),
+            "achieved_sparsity": round(achieved_m, 4),
             "mean_acc": round(float(np.mean(mag_accs)), 2),
             "std_acc": round(float(np.std(mag_accs)), 2),
             "raw_accs": [round(a, 2) for a in mag_accs],
         })
 
-        print(f"Sparsity {s*100:4.0f}% | "
+        print(f"Sparsity {s*100:4.0f}% (achieved {achieved_t:.3f}/{achieved_m:.3f}) | "
               f"Taylor+Regrow: {np.mean(taylor_accs):.2f}% ± {np.std(taylor_accs):.2f}% | "
               f"Magnitude: {np.mean(mag_accs):.2f}% ± {np.std(mag_accs):.2f}%")
 
@@ -182,7 +216,7 @@ def plot_pareto(results):
 
     ax1.errorbar(s_t, m_t, yerr=e_t, marker="o", capsize=4, linewidth=2, label="Taylor Saliency + Regrowth")
     ax1.errorbar(s_m, m_m, yerr=e_m, marker="s", linestyle="--", capsize=4, linewidth=2, label="Magnitude Baseline")
-    ax1.set_title("Sparsity–Accuracy Pareto Curve (5 Seeds)")
+    ax1.set_title(f"Sparsity–Accuracy Pareto Curve ({len(results['taylor'][0]['raw_accs'])} Seeds, hidden={results.get('hidden', '?')})")
     ax1.set_xlabel("Achieved Sparsity (%)")
     ax1.set_ylabel("Validation Accuracy (%)")
     ax1.grid(True, alpha=0.3)
@@ -195,7 +229,7 @@ def plot_pareto(results):
 
     ax2.bar(np.array(sparsities) - 1.5, dense_kflops, width=3.0, alpha=0.4, label="Dense FLOPs (kFLOPs)")
     ax2.bar(np.array(sparsities) + 1.5, sparse_kflops, width=3.0, label="SparseMLP Active FLOPs (kFLOPs)")
-    ax2.set_title("Real Inference Compute Cost (Batch = 120)")
+    ax2.set_title("Real Inference Compute Cost")
     ax2.set_xlabel("Target Sparsity (%)")
     ax2.set_ylabel("Inference FLOPs (kFLOPs)")
     ax2.grid(True, alpha=0.3)
@@ -207,4 +241,4 @@ def plot_pareto(results):
 
 
 if __name__ == "__main__":
-    run_pareto_sweep()
+    run_pareto_sweep(hidden=8, sparsity_levels=[0.0, 0.50, 0.75, 0.90, 0.95, 0.98])

@@ -2,136 +2,212 @@
   "taylor": [
     {
       "target_sparsity": 0.0,
-      "achieved_sparsity": 0.0004,
-      "mean_acc": 99.83,
-      "std_acc": 0.33,
+      "achieved_sparsity": 0.0,
+      "mean_acc": 99.92,
+      "std_acc": 0.17,
       "raw_accs": [
         100.0,
         100.0,
         100.0,
         100.0,
-        99.17
+        99.58
       ]
     },
     {
       "target_sparsity": 0.5,
-      "achieved_sparsity": 0.5,
+      "achieved_sparsity": 0.5041,
       "mean_acc": 99.83,
-      "std_acc": 0.33,
+      "std_acc": 0.2,
       "raw_accs": [
         100.0,
+        99.58,
         100.0,
         100.0,
-        100.0,
-        99.17
+        99.58
       ]
     },
     {
       "target_sparsity": 0.75,
-      "achieved_sparsity": 0.75,
-      "mean_acc": 99.83,
-      "std_acc": 0.33,
+      "achieved_sparsity": 0.7561,
+      "mean_acc": 99.75,
+      "std_acc": 0.2,
       "raw_accs": [
+        99.58,
+        99.58,
         100.0,
         100.0,
-        100.0,
-        100.0,
-        99.17
+        99.58
       ]
     },
     {
       "target_sparsity": 0.9,
-      "achieved_sparsity": 0.9,
-      "mean_acc": 99.83,
-      "std_acc": 0.33,
+      "achieved_sparsity": 0.9024,
+      "mean_acc": 84.58,
+      "std_acc": 12.28,
       "raw_accs": [
-        100.0,
-        100.0,
-        100.0,
-        100.0,
-        99.17
+        90.83,
+        97.5,
+        94.58,
+        66.67,
+        73.33
       ]
     },
     {
       "target_sparsity": 0.95,
-      "achieved_sparsity": 0.95,
-      "mean_acc": 99.83,
-      "std_acc": 0.33,
+      "achieved_sparsity": 0.9512,
+      "mean_acc": 60.08,
+      "std_acc": 7.14,
       "raw_accs": [
-        100.0,
-        100.0,
-        100.0,
-        100.0,
-        99.17
+        68.75,
+        61.25,
+        56.67,
+        48.33,
+        65.42
+      ]
+    },
+    {
+      "target_sparsity": 0.98,
+      "achieved_sparsity": 0.9837,
+      "mean_acc": 32.17,
+      "std_acc": 0.72,
+      "raw_accs": [
+        30.83,
+        32.92,
+        32.08,
+        32.5,
+        32.5
       ]
     }
   ],
   "magnitude": [
     {
       "target_sparsity": 0.0,
-      "achieved_sparsity": 0.0004,
-      "mean_acc": 99.83,
-      "std_acc": 0.33,
+      "achieved_sparsity": 0.0,
+      "mean_acc": 99.92,
+      "std_acc": 0.17,
       "raw_accs": [
         100.0,
         100.0,
         100.0,
         100.0,
-        99.17
+        99.58
       ]
     },
     {
       "target_sparsity": 0.5,
-      "achieved_sparsity": 0.5,
-      "mean_acc": 99.83,
-      "std_acc": 0.33,
+      "achieved_sparsity": 0.5041,
+      "mean_acc": 99.92,
+      "std_acc": 0.17,
       "raw_accs": [
         100.0,
         100.0,
         100.0,
         100.0,
-        99.17
+        99.58
       ]
     },
     {
       "target_sparsity": 0.75,
-      "achieved_sparsity": 0.75,
-      "mean_acc": 99.83,
-      "std_acc": 0.33,
+      "achieved_sparsity": 0.7561,
+      "mean_acc": 81.0,
+      "std_acc": 12.62,
       "raw_accs": [
-        100.0,
-        100.0,
-        100.0,
-        100.0,
-        99.17
+        64.17,
+        92.5,
+        91.67,
+        67.08,
+        89.58
       ]
     },
     {
       "target_sparsity": 0.9,
-      "achieved_sparsity": 0.9,
-      "mean_acc": 99.83,
-      "std_acc": 0.33,
+      "achieved_sparsity": 0.9024,
+      "mean_acc": 39.17,
+      "std_acc": 12.12,
       "raw_accs": [
-        100.0,
-        100.0,
-        100.0,
-        100.0,
-        99.17
+        63.33,
+        32.92,
+        32.08,
+        35.0,
+        32.5
       ]
     },
     {
       "target_sparsity": 0.95,
-      "achieved_sparsity": 0.95,
-      "mean_acc": 99.83,
-      "std_acc": 0.33,
+      "achieved_sparsity": 0.9512,
+      "mean_acc": 33.33,
+      "std_acc": 1.09,
       "raw_accs": [
-        100.0,
-        100.0,
-        100.0,
-        100.0,
-        99.17
+        34.17,
+        32.92,
+        32.08,
+        35.0,
+        32.5
+      ]
+    },
+    {
+      "target_sparsity": 0.98,
+      "achieved_sparsity": 0.9837,
+      "mean_acc": 33.33,
+      "std_acc": 1.09,
+      "raw_accs": [
+        34.17,
+        32.92,
+        32.08,
+        35.0,
+        32.5
       ]
     }
   ],
-  "compute_benchmarks": []
+  "compute_benchmarks": [
+    {
+      "dense_flops": 59040,
+      "sparse_flops": 54480,
+      "flops_reduction_x": 1.08,
+      "dense_latency_ms": 0.0153,
+      "sparse_latency_ms": 0.0735,
+      "target_sparsity": 0.0
+    },
+    {
+      "dense_flops": 59040,
+      "sparse_flops": 28080,
+      "flops_reduction_x": 2.1,
+      "dense_latency_ms": 0.015,
+      "sparse_latency_ms": 0.0414,
+      "target_sparsity": 0.5
+    },
+    {
+      "dense_flops": 59040,
+      "sparse_flops": 15600,
+      "flops_reduction_x": 3.78,
+      "dense_latency_ms": 0.0149,
+      "sparse_latency_ms": 0.0239,
+      "target_sparsity": 0.75
+    },
+    {
+      "dense_flops": 59040,
+      "sparse_flops": 8400,
+      "flops_reduction_x": 7.03,
+      "dense_latency_ms": 0.0151,
+      "sparse_latency_ms": 0.0186,
+      "target_sparsity": 0.9
+    },
+    {
+      "dense_flops": 59040,
+      "sparse_flops": 6480,
+      "flops_reduction_x": 9.11,
+      "dense_latency_ms": 0.0149,
+      "sparse_latency_ms": 0.0141,
+      "target_sparsity": 0.95
+    },
+    {
+      "dense_flops": 59040,
+      "sparse_flops": 4560,
+      "flops_reduction_x": 12.95,
+      "dense_latency_ms": 0.0149,
+      "sparse_latency_ms": 0.0077,
+      "target_sparsity": 0.98
+    }
+  ],
+  "hidden": 8
 }
